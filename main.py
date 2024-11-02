@@ -74,7 +74,7 @@ def check_proxy(proxy):
         logger.error(f"❌ Error checking {proxy}: {e}")
         return None
 
-def save_active_proxies(proxy_list_url, output_file, max_proxies=2000):
+def save_active_proxies(proxy_list_url, output_file, max_proxies=20000):
     try:
         response = requests.get(proxy_list_url)
         if response.status_code == 200:
