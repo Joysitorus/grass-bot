@@ -11,7 +11,6 @@ from fake_useragent import UserAgent
 from loguru import logger
 import schedule
 import base64
-import os
 
 banner = """
 ==================================================================
@@ -38,26 +37,10 @@ print(banner)
 time.sleep(1)
 
 test_url = 'https://www.google.com'
-encoded_proxy_list_url = 'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3Zha2hvdi9mcmVzaC1wcm94eS1saXN0L3JlZnMvaGVhZHMvbWFzdGVyL3NvY2tzNS50eHQ='
-output_file = 'proxies.txt'
+encoded_proxy_list_url = 'aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3IwMHRlZS9Qcm94eS1MaXN0L3JlZnMvaGVhZHMvbWFpbi9Tb2NrczUudHh0'
+output_file = 'active_proxies.txt'
 user_ids_file = 'users.txt'
 proxy_list_url = base64.b64decode(encoded_proxy_list_url).decode()
-
-def get_user_choice():
-    print("\n\n🌐 Choose Proxy Mode:")
-    print("1️⃣  Auto Proxy")
-    print("2️⃣  Manual Proxy")
-    print("\n\n")
-    choice = input("Enter your choice (1 or 2): ")
-    return choice
-
-def load_manual_proxies():
-    try:
-        with open('proxymanual.txt', 'r') as file:
-            return file.read().splitlines()
-    except FileNotFoundError:
-        logger.error("❌ File 'proxymanual.txt' not found.")
-        return []
 
 def check_proxy(proxy):
     try:
@@ -65,16 +48,16 @@ def check_proxy(proxy):
         session.proxies = {'socks5': proxy}
         response = session.head(test_url, timeout=10)
         if response.status_code == 200:
-            logger.info(f"✅ Proxy {proxy} is working!")
+            logger.info(f"Proxy {proxy} Mantep Nih")
             return proxy
         else:
-            logger.warning(f"⚠️ Proxy {proxy} returned status code {response.status_code}.")
+            logger.warning(f"Proxy {proxy} returned status code {response.status_code}.")
             return None
     except Exception as e:
-        logger.error(f"❌ Error checking {proxy}: {e}")
+        logger.error(f"Error occurred while checking {proxy}: {e}")
         return None
 
-def save_active_proxies(proxy_list_url, output_file, max_proxies=20000):
+def save_active_proxies(proxy_list_url, output_file, max_proxies=2000):
     try:
         response = requests.get(proxy_list_url)
         if response.status_code == 200:
@@ -91,21 +74,20 @@ def save_active_proxies(proxy_list_url, output_file, max_proxies=20000):
             with open(output_file, 'w') as f:
                 for proxy in random_active_proxies:
                     f.write(f"http://{proxy}\n")
-            logger.info(f"✅ Saved {len(random_active_proxies)} active proxies to '{output_file}'.")
             return random_active_proxies
         else:
-            logger.error(f"❌ Failed to fetch proxy list from {proxy_list_url}. Status code: {response.status_code}")
+            logger.error(f"Gagal mengambil daftar proxy dari {proxy_list_url}. Kode status: {response.status_code}")
             return []
     except Exception as e:
-        logger.error(f"❌ Error processing proxy list from {proxy_list_url}: {e}")
+        logger.error(f"Error terjadi pas ambil atau proses daftar proxy dari {proxy_list_url}: {e}")
         return []
 
 def log_reputation(proxy, completeness, consistency, timeliness, availability):
-    logger.info(f"🔍 Proxy: {proxy} | Completeness: {completeness} | Consistency: {consistency} | Timeliness: {timeliness} | Availability: {availability}")
+    logger.info(f"Proxy: {proxy}, Complete: {completeness}, Konsistensi: {consistency}, Waktu: {timeliness}, Ketersediaan: {availability}")
 
 async def connect_to_wss(socks5_proxy, user_id, traffic_type='PET'):
     device_id = str(uuid.uuid3(uuid.NAMESPACE_DNS, socks5_proxy))
-    logger.info(f"📱 Device ID: {device_id}")
+    logger.info(device_id)
     user_agent = UserAgent()
     random_user_agent = user_agent.random
 
@@ -129,9 +111,9 @@ async def connect_to_wss(socks5_proxy, user_id, traffic_type='PET'):
                             {"id": str(uuid.uuid4()), "version": "1.0.0", "action": "PING", "data": {}})
                         try:
                             await websocket.send(send_message)
-                            logger.debug(f"📤 Sent PING: {send_message}")
+                            logger.debug(send_message)
                         except Exception as e:
-                            logger.error(f"❌ Failed to send PING: {e}")
+                            logger.error(f"Gagal kirim PING: {e}")
                         await asyncio.sleep(2)
 
                 asyncio.create_task(send_ping())
@@ -139,7 +121,7 @@ async def connect_to_wss(socks5_proxy, user_id, traffic_type='PET'):
                 while True:
                     response = await websocket.recv()
                     message = json.loads(response)
-                    logger.info(f"📩 Received message: {message}")
+                    logger.info(message)
 
                     completeness = True 
                     consistency = True
@@ -163,43 +145,38 @@ async def connect_to_wss(socks5_proxy, user_id, traffic_type='PET'):
                         }
                         try:
                             await websocket.send(json.dumps(auth_response))
-                            logger.debug(f"📤 Sent AUTH response: {auth_response}")
+                            logger.debug(auth_response)
                         except Exception as e:
-                            logger.error(f"❌ Failed to send AUTH response: {e}")
+                            logger.error(f"Gagal kirim respon AUTH: {e}")
 
                     elif message.get("action") == "PONG":
                         pong_response = {"id": message["id"], "origin_action": "PONG"}
                         try:
                             await websocket.send(json.dumps(pong_response))
-                            logger.debug(f"📤 Sent PONG response: {pong_response}")
+                            logger.debug(pong_response)
                         except Exception as e:
-                            logger.error(f"❌ Failed to send PONG response: {e}")
+                            logger.error(f"Gagal kirim respon PONG: {e}")
 
         except Exception as e:
             pass 
             await asyncio.sleep(10) 
 
-async def main(socks5_proxy_list):
+async def main():
     with open(user_ids_file, 'r') as file:
         user_ids = file.read().splitlines()
+
+    with open(output_file, 'r') as file:
+        socks5_proxy_list = file.read().splitlines()
 
     tasks = [asyncio.ensure_future(connect_to_wss(proxy, user_id.strip(), traffic_type='PET')) for user_id in user_ids for proxy in socks5_proxy_list]
     await asyncio.gather(*tasks)
 
 def perform_job():
-    choice = get_user_choice()
-    if choice == '1':
-        active_proxies = save_active_proxies(proxy_list_url, output_file)
-    elif choice == '2':
-        active_proxies = load_manual_proxies()
-    else:
-        logger.error("❌ Invalid choice. Please enter 1 or 2.")
-        return
-
+    active_proxies = save_active_proxies(proxy_list_url, output_file)
     if active_proxies:
-        asyncio.run(main(active_proxies))
+        asyncio.run(main())
     else:
-        logger.error("❌ No active proxies found. Skipping WebSocket connection.")
+        logger.error("Kagak ada proxy aktif, lewatin hubungan WebSocket.")
 
 schedule.every(24).hours.do(perform_job)
 
