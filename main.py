@@ -99,8 +99,8 @@ async def connect_to_wss(socks5_proxy, user_id, traffic_type='PET'):
             ssl_context.check_hostname = False
             ssl_context.verify_mode = ssl.CERT_NONE
 
-            uri = "wss://proxy.wynd.network:4650/"
-            server_hostname = "proxy.wynd.network"
+            urilist = ["wss://proxy.wynd.network:4444/", "wss://proxy.wynd.network:4650/", "wss://proxy2.wynd.network:4444/", "wss://proxy2.wynd.network:4650/", "wss://proxy3.wynd.network:4444/", "wss://proxy3.wynd.network:4650/"]
+            uri = random.choice(urilist)
             proxy = Proxy.from_url(socks5_proxy)
 
             async with proxy_connect(uri, proxy=proxy, ssl=ssl_context, server_hostname=server_hostname,
